@@ -1,0 +1,3 @@
+String imaPath = "images" + File.separator + "prototype.png";
+new ClassPathResource(imaPath).getInputStream() 
+读取文件方式更好
