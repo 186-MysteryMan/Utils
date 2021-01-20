@@ -1,5 +1,9 @@
+//路径
 String imaPath = "images" + File.separator + "prototype.png";
- src = Toolkit.getDefaultToolkit().getImage(QrCodeBaseUtils.class.getClassLoader().getResource(imaPath));
+//读取并转成image对象
+ Image src = Toolkit.getDefaultToolkit().getImage(QrCodeBaseUtils.class.getClassLoader().getResource(imaPath));
+ //读取文件方式
+ new ClassPathResource(imaPath).getInputStream()
 //读取文件方式更好
 
 //自定义字体
