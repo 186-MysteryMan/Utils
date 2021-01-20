@@ -1,3 +1,13 @@
 String imaPath = "images" + File.separator + "prototype.png";
-new ClassPathResource(imaPath).getInputStream() 
-读取文件方式更好
+ src = Toolkit.getDefaultToolkit().getImage(QrCodeBaseUtils.class.getClassLoader().getResource(imaPath));
+//读取文件方式更好
+
+//自定义字体
+inputStream = GraphicsUtils.class.getClassLoader().getResourceAsStream("font/msyh.ttc");
+boldInputStream = GraphicsUtils.class.getClassLoader().getResourceAsStream("font/msyhbd.ttc");
+if (inputStream != null && boldInputStream != null) {
+    msyhFont = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+    msyhFont = msyhFont.deriveFont(Font.PLAIN,16);
+    msyhBoldFont = Font.createFont(Font.TRUETYPE_FONT, boldInputStream);
+    msyhBoldFont = msyhBoldFont.deriveFont(Font.BOLD,13);
+}
