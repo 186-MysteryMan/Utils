@@ -4,6 +4,7 @@ import cn.afterturn.easypoi.excel.ExcelExportUtil;
 import cn.afterturn.easypoi.excel.ExcelImportUtil;
 import cn.afterturn.easypoi.excel.entity.ExportParams;
 import cn.afterturn.easypoi.excel.entity.ImportParams;
+import com.puer.brand.common.util.CloseStreamUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.core.io.ClassPathResource;
@@ -40,13 +41,7 @@ public class ReportUtil {
         } catch (IOException e) {
             log.error("导出excel失败!",e);
         }finally {
-            try {
-                if (out!=null){
-                    out.close();
-                }
-            } catch (IOException e) {
-                log.error("输出流关闭失败!",e);
-            }
+            CloseStreamUtil.close(out,"输出流关闭失败");
         }
     }
 
@@ -72,21 +67,7 @@ public class ReportUtil {
         } catch (Exception e) {
             log.error("文件下载失败!",e);
         }finally {
-            try {
-                if(os!=null){
-                    os.close();
-                }
-            } catch (IOException e) {
-                log.error("输出流关闭失败!",e);
-            }finally {
-                try {
-                    if (is!=null){
-                        is.close();
-                    }
-                } catch (IOException e) {
-                    log.error("输入流关闭失败!",e);
-                }
-            }
+            CloseStreamUtil.close(is,os,"输出流关闭失败");
         }
     }
 
@@ -95,10 +76,10 @@ public class ReportUtil {
      * 读取文件
      * @param file 文件
      * @param clazz 根据这个类的字段得到数据
-     * @param <T>
+     * @param <T> 返回类型
      * @return
      */
-    public static <T> List<T> readFile(MultipartFile file,Class clazz){
+    public static <T> List<T> readFile(MultipartFile file,Class<T> clazz){
         InputStream is = null;
         try {
             is = file.getInputStream();
@@ -110,13 +91,7 @@ public class ReportUtil {
         } catch (Exception e) {
             log.error("文件读取失败",e);
         }finally {
-            try {
-                if (is!=null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                log.error("输入流关闭失败",e);
-            }
+            CloseStreamUtil.close(is,"输入流关闭失败");
         }
         return null;
     }
