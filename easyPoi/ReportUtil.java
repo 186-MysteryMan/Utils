@@ -31,7 +31,7 @@ public class ReportUtil {
         HttpServletResponse response = reportPram.getResponse();
         ServletOutputStream out = null;
         try {
-            Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(reportPram.getTitle(), reportPram.getSheetName()),
+            Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(reportPram.getTitle(), reportPram.getSheetName(), ExcelType.XSSF),
                     reportPram.getClazz(), reportPram.getList());
             response.setContentType("application/vnd.ms-excel");
             response.setHeader("content-Disposition", "attachment;filename="+reportPram.getFileName()+".xlsx");
