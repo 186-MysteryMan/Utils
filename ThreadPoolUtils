@@ -1,6 +1,7 @@
 package com.fight2048.jdefault.admin.common.security.session;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -66,7 +67,11 @@ public class ThreadPoolUtils {
     /**
      * 分页执行当前list
      * @param list 分页前数据
-     * @param executeMethod 需要执行的方法 参数是当前list中的一页(多个参数时可自定义 (list) -> method(list, a, b, c) a,b,c等均自己传入)
+     * @param executeMethod 需要执行的方法
+     *                      示例:
+     *                      单个参数(只包含这个list) ThreadPoolUtils.execute(list, object::methodName)
+     *                      多个参数(ThreadPoolUtils.execute(list, (list) -> object.method(list, a, b, c)) a,b,c等均自己传入)
+     *                      object自己时用this，多个参数时可以省略。
      */
     public static <D> void execute(List<D> list, Consumer<List<D>> executeMethod){
         //创建最大30条的线程池(调用等待策略 10秒)
