@@ -1,15 +1,8 @@
-package com.pooul.haoyufu.common.utils;
+package com.fight2048.jdefault.admin.common.security.session;
 
-import com.pooul.haoyufu.common.constant.ErrorCodes;
-import com.pooul.haoyufu.common.exception.ApplicationException;
-import org.apache.poi.ss.formula.functions.T;
-import org.springframework.integration.util.CallerBlocksPolicy;
 
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -33,7 +26,7 @@ public class ThreadPoolUtils {
                 , new ArrayBlockingQueue<>(15)
                 , Thread::new
                 //使用spring提供的调用等待机制，最大等待10秒后还无法获取新线程将抛出异常
-                , new CallerBlocksPolicy(10000)
+                , new ThreadPoolExecutor.AbortPolicy()
         );
     }
 
@@ -111,7 +104,9 @@ public class ThreadPoolUtils {
         //等待所有数据收集完毕再执行后面操作
         countDownLatchAwait(countDownLatch);
         //是否所有数据都合法
-        Assert.isTrue(!fail.get(), ErrorCodes.NO_SUPPORT, failMessage.get());
+        if (fail.get()){
+            throw new RuntimeException(failMessage.get());
+        }
     }
 
     /**
@@ -122,7 +117,7 @@ public class ThreadPoolUtils {
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {
-            throw new ApplicationException(ErrorCodes.NO_SUPPORT, "关闭计时器失败");
+            throw new RuntimeException("关闭计时器失败");
         }
     }
 }
