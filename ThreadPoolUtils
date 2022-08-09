@@ -49,9 +49,10 @@ public class ThreadPoolUtils1 {
 
     /**
      * 执行多线程 (this::method)
+     *
      * @param runnable 任务 无参数
      */
-    public static void execute(Runnable runnable){
+    public static void execute(Runnable runnable) {
         ThreadPoolExecutor threadPool = createSingleThreadPool();
         threadPool.execute(runnable);
         threadPool.shutdown();
@@ -59,10 +60,11 @@ public class ThreadPoolUtils1 {
 
     /**
      * 执行多线程 (this::method, arg1)
+     *
      * @param executeMethod 需要执行的方法 单个参数
-     * @param arg1 参数1
+     * @param arg1          参数1
      */
-    public static <D> void execute(Consumer<D> executeMethod, D arg1){
+    public static <D> void execute(Consumer<D> executeMethod, D arg1) {
         ThreadPoolExecutor threadPool = createSingleThreadPool();
         threadPool.execute(() -> executeMethod.accept(arg1));
         threadPool.shutdown();
@@ -70,26 +72,28 @@ public class ThreadPoolUtils1 {
 
     /**
      * 执行多线程 (this::method, arg1, arg2)
+     *
      * @param executeMethod 需要执行的方法 可传入两个参数
-     * @param arg1 参数1
-     * @param arg2 参数2
+     * @param arg1          参数1
+     * @param arg2          参数2
      */
-    public static <D,O> void execute(BiConsumer<D,O> executeMethod, D arg1, O arg2){
+    public static <D, O> void execute(BiConsumer<D, O> executeMethod, D arg1, O arg2) {
         ThreadPoolExecutor threadPool = createSingleThreadPool();
-        threadPool.execute(() -> executeMethod.accept(arg1,arg2));
+        threadPool.execute(() -> executeMethod.accept(arg1, arg2));
         threadPool.shutdown();
     }
 
     /**
      * 使用多线程分页执行当前传入的list对象，将list根据传入的size切割，分批使用多个线程执行代码
      * 写法：
-     *      仅包含list参数的写法(list, this::method)
-     *      多个参数的写法(list, (list) -> this.method(list, a, b ,c))a,b,c均使用自己的代码
-     * @param size 每页执行条数
-     * @param list 分页前数据
+     * 仅包含list参数的写法(list, this::method)
+     * 多个参数的写法(list, (list) -> this.method(list, a, b ,c))a,b,c均使用自己的代码
+     *
+     * @param size          每页执行条数
+     * @param list          分页前数据
      * @param executeMethod 需要执行的方法 参数是当前list中的一页
      */
-    public static <D> void execute(int size ,List<D> list, Consumer<List<D>> executeMethod) throws InterruptedException {
+    public static <D> void execute(int size, List<D> list, Consumer<List<D>> executeMethod) throws InterruptedException {
         //创建最大30条的线程池(调用等待策略 10秒)
         ThreadPoolExecutor threadPool = createThreadPool();
         //得到结果和失败消息
@@ -114,7 +118,7 @@ public class ThreadPoolUtils1 {
                     for (int k = 0; k < pageSize; k++) {
                         countDownLatch.countDown();
                     }
-                }finally {
+                } finally {
                     countDownLatch.countDown();
                 }
             });
@@ -125,8 +129,9 @@ public class ThreadPoolUtils1 {
         countDownLatch.await();
         //是否所有数据都合法
         if (fail.get()) {
-            throw new RuntimeException(failMessage.get());   
+            throw new RuntimeException(failMessage.get());
         }
     }
 }
+
 
