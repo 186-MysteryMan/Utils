@@ -1,9 +1,8 @@
-package com.fight2048.jdefault.admin.common.security.session;
-
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -13,74 +12,90 @@ import java.util.stream.Collectors;
  * @author shenggongjie
  * @date 2021/12/29 9:54
  */
-public class ThreadPoolUtils {
+public class ThreadPoolUtils1 {
     /**
      * 创建线程池 最大30条线程
      *
      * @return
      */
-    public static ThreadPoolExecutor createThreadPool() {
+    private static ThreadPoolExecutor createThreadPool() {
         return new ThreadPoolExecutor(5
                 , 25
                 , 60
                 , TimeUnit.SECONDS
-                , new ArrayBlockingQueue<>(15)
+                , new ArrayBlockingQueue<>(500)
                 , Thread::new
-                //使用spring提供的调用等待机制，最大等待10秒后还无法获取新线程将抛出异常
+                //中断机制
                 , new ThreadPoolExecutor.AbortPolicy()
         );
     }
 
     /**
-     * 执行多线程
+     * 创建线程池 最大30条线程
+     *
+     * @return
+     */
+    private static ThreadPoolExecutor createSingleThreadPool() {
+        return new ThreadPoolExecutor(1
+                , 1
+                , 60
+                , TimeUnit.SECONDS
+                , new ArrayBlockingQueue<>(1)
+                , Thread::new
+                //中断机制
+                , new ThreadPoolExecutor.AbortPolicy()
+        );
+    }
+
+    /**
+     * 执行多线程 (this::method)
      * @param runnable 任务 无参数
      */
     public static void execute(Runnable runnable){
-        ThreadPoolExecutor threadPool = createThreadPool();
+        ThreadPoolExecutor threadPool = createSingleThreadPool();
         threadPool.execute(runnable);
         threadPool.shutdown();
     }
 
     /**
-     * 执行多线程
+     * 执行多线程 (this::method, arg1)
      * @param executeMethod 需要执行的方法 单个参数
      * @param arg1 参数1
      */
     public static <D> void execute(Consumer<D> executeMethod, D arg1){
-        ThreadPoolExecutor threadPool = createThreadPool();
+        ThreadPoolExecutor threadPool = createSingleThreadPool();
         threadPool.execute(() -> executeMethod.accept(arg1));
         threadPool.shutdown();
     }
 
     /**
-     * 执行多线程
+     * 执行多线程 (this::method, arg1, arg2)
      * @param executeMethod 需要执行的方法 可传入两个参数
      * @param arg1 参数1
      * @param arg2 参数2
      */
     public static <D,O> void execute(BiConsumer<D,O> executeMethod, D arg1, O arg2){
-        ThreadPoolExecutor threadPool = createThreadPool();
+        ThreadPoolExecutor threadPool = createSingleThreadPool();
         threadPool.execute(() -> executeMethod.accept(arg1,arg2));
         threadPool.shutdown();
     }
 
     /**
-     * 分页执行当前list
+     * 使用多线程分页执行当前传入的list对象，将list根据传入的size切割，分批使用多个线程执行代码
+     * 写法：
+     *      仅包含list参数的写法(list, this::method)
+     *      多个参数的写法(list, (list) -> this.method(list, a, b ,c))a,b,c均使用自己的代码
+     * @param size 每页执行条数
      * @param list 分页前数据
-     * @param executeMethod 需要执行的方法
-     *                      示例:
-     *                      单个参数(只包含这个list) ThreadPoolUtils.execute(list, object::methodName)
-     *                      多个参数(ThreadPoolUtils.execute(list, (list) -> object.method(list, a, b, c)) a,b,c等均自己传入)
-     *                      object自己时用this，多个参数时可以省略。
+     * @param executeMethod 需要执行的方法 参数是当前list中的一页
      */
-    public static <D> void execute(List<D> list, Consumer<List<D>> executeMethod){
+    public static <D> void execute(int size ,List<D> list, Consumer<List<D>> executeMethod) throws InterruptedException {
         //创建最大30条的线程池(调用等待策略 10秒)
         ThreadPoolExecutor threadPool = createThreadPool();
         //得到结果和失败消息
         AtomicReference<Boolean> fail = new AtomicReference<>(false);
         AtomicReference<String> failMessage = new AtomicReference<>("");
         //分页执行，每一个线程执行100条数据
-        int size = 100;
         int pageSize = list.size() / size + 1;
         CountDownLatch countDownLatch = new CountDownLatch(pageSize);
         for (int j = 0; j < pageSize; j++) {
@@ -107,22 +122,11 @@ public class ThreadPoolUtils {
         //执行所有线程后关闭线程池(包含溢出等待中的线程)
         threadPool.shutdown();
         //等待所有数据收集完毕再执行后面操作
-        countDownLatchAwait(countDownLatch);
+        countDownLatch.await();
         //是否所有数据都合法
-        if (fail.get()){
-            throw new RuntimeException(failMessage.get());
-        }
-    }
-
-    /**
-     * 等待计时器
-     * @param countDownLatch
-     */
-    private static void countDownLatchAwait(CountDownLatch countDownLatch){
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            throw new RuntimeException("关闭计时器失败");
+        if (fail.get()) {
+            throw new RuntimeException(failMessage.get());   
         }
     }
 }
+
