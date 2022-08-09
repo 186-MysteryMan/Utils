@@ -89,11 +89,11 @@ public class ThreadPoolUtils1 {
      * 仅包含list参数的写法(list, this::method)
      * 多个参数的写法(list, (list) -> this.method(list, a, b ,c))a,b,c均使用自己的代码
      *
-     * @param size          每页执行条数
+     * @param size          每页执行条数，必须大于0
      * @param list          分页前数据
      * @param executeMethod 需要执行的方法 参数是当前list中的一页
      */
-    public static <D> void execute(int size, List<D> list, Consumer<List<D>> executeMethod) throws InterruptedException {
+    public static <D> void execute(int size, List<D> list, Consumer<List<D>> executeMethod) {
         //创建最大30条的线程池(调用等待策略 10秒)
         ThreadPoolExecutor threadPool = createThreadPool();
         //得到结果和失败消息
@@ -126,12 +126,22 @@ public class ThreadPoolUtils1 {
         //执行所有线程后关闭线程池(包含溢出等待中的线程)
         threadPool.shutdown();
         //等待所有数据收集完毕再执行后面操作
-        countDownLatch.await();
+        countDownLatchAwait(countDownLatch);
         //是否所有数据都合法
         if (fail.get()) {
             throw new RuntimeException(failMessage.get());
         }
     }
+
+    /**
+     * 等待计时器
+     * @param countDownLatch
+     */
+    private static void countDownLatchAwait(CountDownLatch countDownLatch){
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("计时器关闭失败");
+        }
+    }
 }
-
-
