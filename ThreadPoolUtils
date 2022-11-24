@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * @author shenggongjie
  * @date 2021/12/29 9:54
  */
-public class ThreadPoolUtils1 {
+public class ThreadPoolUtils {
     /**
      * 创建线程池 最大30条线程
      *
@@ -99,8 +99,8 @@ public class ThreadPoolUtils1 {
         //得到结果和失败消息
         AtomicReference<Boolean> fail = new AtomicReference<>(false);
         AtomicReference<String> failMessage = new AtomicReference<>("");
-        //分页执行，每一个线程执行100条数据
-        int pageSize = totalList.size() / size + 1;
+        //分页执行，每一个线程执行size条数据
+        int pageSize = (int) Math.ceil((double) totalList.size() / (double) size);
         CountDownLatch countDownLatch = new CountDownLatch(pageSize);
         for (int j = 0; j < pageSize; j++) {
             List<D> pageList = totalList.stream()
