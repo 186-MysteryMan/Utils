@@ -86,24 +86,24 @@ public class ThreadPoolUtils1 {
     /**
      * 使用多线程分页执行当前传入的list对象，将list根据传入的size切割，分批使用多个线程执行代码
      * 写法：
-     * 仅包含list参数的写法(list, this::method)
-     * 多个参数的写法(list, (list) -> this.method(list, a, b ,c))a,b,c均使用自己的代码
+     * 仅包含list参数的写法(totalList, this::method)
+     * 多个参数的写法(100, totalList, (pageList) -> this.method(pageList, a, b ,c))a,b,c均使用自己的代码
      *
      * @param size          每页执行条数，必须大于0
-     * @param list          分页前数据
+     * @param totalList          分页前数据
      * @param executeMethod 需要执行的方法 参数是当前list中的一页
      */
-    public static <D> void execute(int size, List<D> list, Consumer<List<D>> executeMethod) {
+    public static <D> void execute(int size, List<D> totalList, Consumer<List<D>> executeMethod) {
         //创建最大30条的线程池(调用等待策略 10秒)
         ThreadPoolExecutor threadPool = createThreadPool();
         //得到结果和失败消息
         AtomicReference<Boolean> fail = new AtomicReference<>(false);
         AtomicReference<String> failMessage = new AtomicReference<>("");
         //分页执行，每一个线程执行100条数据
-        int pageSize = list.size() / size + 1;
+        int pageSize = totalList.size() / size + 1;
         CountDownLatch countDownLatch = new CountDownLatch(pageSize);
         for (int j = 0; j < pageSize; j++) {
-            List<D> pageList = list.stream()
+            List<D> pageList = totalList.stream()
                     .skip((long) j * size)
                     .limit(size)
                     .collect(Collectors.toList());
